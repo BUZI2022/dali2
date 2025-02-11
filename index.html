@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <base href="/dali2/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="2025年2月大理之旅纪念页面，记录了在苍山、古城、双廊等地的美好回忆">
+    <meta name="keywords" content="大理,旅行纪念,苍山,古城,双廊,旅游博客">
+    <meta property="og:title" content="大理之旅 - 2025年2月">
+    <meta property="og:description" content="记录在大理的美好时光，包括苍山、古城、双廊等地的旅行记忆">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="大理之旅 - 2025年2月">
+    <meta name="twitter:description" content="记录在大理的美好时光，包括苍山、古城、双廊等地的旅行记忆">
+    <title>大理之旅 - 2025年2月</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;400&display=swap" rel="stylesheet">
+    <link href="styles/main.css" rel="stylesheet">
+    <style>
+        .site-title {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 200;
+            font-size: 2.5rem;
+        }
+        .site-subtitle {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 200;
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+        .section-title {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 400;
+            font-size: 2rem;
+            margin: 6rem 0 3rem;
+            text-align: center;
+            letter-spacing: 0.5rem;
+        }
+        .leaflet-popup-content {
+            margin: 10px;
+            font-family: 'Noto Serif SC, serif';
+            min-width: 280px;
+        }
+        .map-popup h3 {
+            font-size: 1.2rem;
+            margin: 12px 0;
+            text-align: center;
+        }
+        .custom-marker {
+            width: 12px !important;
+            height: 12px !important;
+            background-color: #4A90E2;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+            position: relative;
+        }
+        .custom-marker::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            background-color: rgba(74, 144, 226, 0.3);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.6;
+            }
+            70% {
+                transform: translate(-50%, -50%) scale(2);
+                opacity: 0;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0;
+            }
+        }
+        .custom-marker:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        /* 地图容器样式 */
+        .map-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+        /* 弹出框样式 */
+        .leaflet-popup {
+            z-index: 1000 !important;
+        }
+        .leaflet-popup-content-wrapper,
+        .leaflet-popup-tip {
+            z-index: 1000 !important;
+        }
+        .custom-popup {
+            position: absolute;
+            z-index: 1000 !important;
+        }
+        /* 照片网格样式 */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .photo-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 30px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .photo-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 40px;
+            }
+        }
+
+        .photo-item {
+            position: relative;
+            aspect-ratio: 4/3;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .photo-gallery-title {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 400;
+            font-size: 2rem;
+            margin: 6rem 0 3rem;
+            text-align: center;
+            letter-spacing: 0.5rem;
+        }
+        .photo-thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background-color: #f5f5f5;
+        }
+        .photo-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .photo-item:hover .photo-caption {
+            opacity: 1;
+        }
+        .toggle-photos-button {
+            display: inline-block;
+            margin: 3rem auto 0;
+            padding: 0.75rem 2.5rem;
+            border: 1.5px solid #333;
+            background-color: transparent;
+            color: #333;
+            transition: all 0.3s ease;
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 400;
+            font-size: 1.1rem;
+            letter-spacing: 0.3rem;
+        }
+        .toggle-photos-button:hover {
+            background-color: #333;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="root-container">
+        <div id="root"></div>
+    </div>
+    <script src="data/tripData.js"></script>
+    <script src="utils/mapUtils.js"></script>
+    <script src="components/Header.js"></script>
+    <script src="components/PhotoModal.js"></script>
+    <script src="components/PhotoGallery.js"></script>
+    <script src="components/TripMap.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
