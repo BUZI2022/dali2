@@ -7,7 +7,7 @@
     justify-content: center;
     background-position: center;
     background-size: cover;
-    background-image: url('../pic/banner/banner.jpg');
+    background-image: var(--banner-url);
 }
 
 .header-container, .header-overlay {
@@ -300,4 +300,8 @@
     color: white;
     font-family: 'Noto Serif SC', serif;
     font-size: 1.2rem;
+}
+
+.floating-window {
+    background-image: url('https://github.com/BUZI2022/dali2/releases/download/v1.0.0/fuchuang.zip/fuchuang.jpg');
 }
