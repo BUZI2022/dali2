@@ -1,0 +1,101 @@
+// 使用 Mapbox Light 主题的样式
+const MAPBOX_STYLE = 'mapbox://styles/mapbox/light-v11';
+const MAPBOX_TOKEN = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+
+function loadTMapScript(key) {
+    return new Promise((resolve, reject) => {
+        try {
+            if (window.mapboxgl) {
+                resolve(window.mapboxgl);
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js';
+            script.async = true;
+            script.onload = () => resolve(window.mapboxgl);
+            script.onerror = () => reject(new Error('Failed to load Mapbox GL SDK'));
+            document.head.appendChild(script);
+        } catch (error) {
+            reportError(error);
+            reject(error);
+        }
+    });
+}
+
+async function initializeMap(container) {
+    try {
+        await loadTMapScript();
+        
+        mapboxgl.accessToken = MAPBOX_TOKEN;
+        
+        const map = new mapboxgl.Map({
+            container: container,
+            style: MAPBOX_STYLE,
+            center: [100.225668, 25.733262],
+            zoom: 13,
+            minZoom: 9,
+            maxZoom: 17
+        });
+
+        // 添加导航控件
+        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+        map.addControl(new mapboxgl.ScaleControl(), 'bottom-right');
+
+        return map;
+    } catch (error) {
+        console.error('Failed to initialize map:', error);
+        return null;
+    }
+}
+
+function createMarkerElement(location) {
+    const markerEl = document.createElement('div');
+    markerEl.className = 'map-marker';
+    
+    const markerContent = document.createElement('div');
+    markerContent.className = 'marker-content';
+    markerContent.innerHTML = `
+        <div class="map-preview-container">
+            <div class="map-preview">
+                <img src="${location.previewImage}" alt="${location.name}" style="width: 150px; height: 100px; object-fit: cover; border-radius: 4px;" />
+            </div>
+            <div class="location-name" style="text-align: center; margin-top: 5px; font-weight: bold;">${location.name}</div>
+        </div>
+    `;
+    
+    markerEl.appendChild(markerContent);
+    return markerEl;
+}
+
+function addMapMarkers(map, locations) {
+    if (!map) return;
+
+    locations.forEach(location => {
+        // 创建标记点
+        const marker = new mapboxgl.Marker({
+            element: createMarkerElement(location),
+            anchor: 'bottom'
+        })
+        .setLngLat(location.coordinates)
+        .addTo(map);
+
+        // 创建弹出窗口
+        const popup = new mapboxgl.Popup({
+            offset: 25,
+            closeButton: true,
+            closeOnClick: true
+        })
+        .setHTML(`
+            <div class="map-popup">
+                <img src="${location.previewImage}" alt="${location.name}" style="width: 200px; height: 150px; object-fit: cover; border-radius: 4px;" />
+                <h3 style="margin-top: 8px; font-weight: bold; text-align: center;">${location.name}</h3>
+            </div>
+        `);
+
+        // 点击标记时显示弹出窗口
+        marker.getElement().addEventListener('click', () => {
+            popup.setLngLat(location.coordinates).addTo(map);
+        });
+    });
+}
